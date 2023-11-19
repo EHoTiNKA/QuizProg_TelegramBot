@@ -18,7 +18,7 @@ To transfer the project to yourself, follow these steps:
 1. Clone the repository:
 
 ```
-git clone https://github.com/your-username/Brocol-Backend.git .
+git clone https://github.com/your-username/QuizProg_TelegramBot.git .
 ```
 
 2. Creating and running a virtual environment:
