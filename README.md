@@ -2,9 +2,9 @@
 
 This is a telegram bot with a quiz for a user with a database of tests and a user base
 Created using:
-- pyrogram
-- tgcrypto
+- aiogram[2.23.1]
 - pony
+- pydantic
 
 ## Future plans
 
