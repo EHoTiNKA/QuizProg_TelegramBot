@@ -20,6 +20,7 @@ sessions = {}
 class ProfileStatesGroup(StatesGroup):
     state_name = State()
     state_group = State()
+    # state_reg_confirm = State()
 
 
 @dp.message_handler(commands=['start']) #декоратор
@@ -51,9 +52,6 @@ async def load_state_group(message: types.Message, state:FSMContext):
         data['state_group'] = message.text
 
     await bot.send_message(message.chat.id, '<b>Данные сохранены!</b>', parse_mode='html')
-    await state.finish()
-
-async def user_reg_confirm(message):
     user = sessions[message.chat.id]
     user.group = message.text.strip()
     markup_inline = InlineKeyboardMarkup(row_width=2)
@@ -61,7 +59,23 @@ async def user_reg_confirm(message):
     item_no = InlineKeyboardButton(text = 'Нет', callback_data = 'no')
     markup_inline.add(item_yes, item_no)
     await bot.send_message(message.chat.id, f'<b>Проверьте корректность данных:</b>\n\nВас зовут - {user.name}\nСостоите в группе - {user.group}', reply_markup=markup_inline, parse_mode='html')
+    await state.finish()
 
+
+@dp.callback_query_handler()
+async def answer(callback: types.CallbackQuery):
+    user = sessions[callback.message.chat.id]
+    if callback.data == 'yes':
+        @db_session
+        def add_user():
+            Users(name=f'{user.name}', group=f'{user.group}')
+        add_user()
+        commit()
+        await bot.send_message(callback.message.chat.id, '<b>Данные успешно сохранены!</b>', parse_mode='html')
+        await bot.send_message(callback.message.chat.id, 'Отлично теперь вы можете начать тест\nЭто тест на знания в сфере IT из 30ти вопросов\nЧтобы начать тест введите /startquiz')
+    elif callback.data == 'no':
+        await bot.send_message(callback.message.chat.id, 'Введите верные данные')
+        await bot.send_message(callback.message.chat.id, 'Для прохождения регистрации введите /reg повторно!')
 
 
 
