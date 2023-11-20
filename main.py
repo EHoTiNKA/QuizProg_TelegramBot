@@ -1,8 +1,10 @@
-import aiogram
+import json
 import logging
 import sys
 import asyncio
 from aiogram.enums import ParseMode
+from aiogram.methods import send_poll
+from aiogram.types.poll_answer import PollAnswer
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import State, StatesGroup
@@ -40,7 +42,7 @@ async def start(message: types.Message):
     )
 
 
-@dp.message(Command('reg'))
+@dp.message(Command("reg"))
 async def user_reg(message: types.Message, state: FSMContext):
     sessions[message.chat.id] = User()
     await bot.send_message(
@@ -64,8 +66,8 @@ async def load_user_group(message: types.Message, state: FSMContext):
     user = sessions[message.chat.id]
     user.group = message.text.strip()
     builder = InlineKeyboardBuilder()
-    builder.button(text='Да', callback_data='yes')
-    builder.button(text='Нет', callback_data='no')
+    builder.button(text="Да", callback_data="yes")
+    builder.button(text="Нет", callback_data="no")
     await bot.send_message(
         message.chat.id,
         f"<b>Проверьте корректность данных:</b>\n\nВас зовут - {user.name}\nСостоите в группе - {user.group}",
@@ -73,7 +75,6 @@ async def load_user_group(message: types.Message, state: FSMContext):
         parse_mode="html",
     )
     await state.set_state(ProfileStatesGroup.check_data)
-    
 
 
 @dp.callback_query(ProfileStatesGroup.check_data)
@@ -96,21 +97,46 @@ async def callback_analysis(callback: types.CallbackQuery, state: FSMContext):
             callback.message.chat.id,
             "Отлично теперь вы можете начать тест\nЭто тест на знания в сфере IT из 30ти вопросов\nЧтобы начать тест введите /startquiz",
         )
-        
+
     elif callback.data == "no":
         await bot.send_message(
             callback.message.chat.id, "<b>Введите ваше ФИО</b>", parse_mode="html"
         )
         await state.set_state(ProfileStatesGroup.user_name)
-        
+
     await callback.message.delete()
 
-@dp.message(Command('startquiz'))
-async def start_quiz(message: types.Message):
-    pass
+
+@dp.message(Command("startquiz"))
+async def start_quiz(message: types.Message, state: FSMContext):
+    # with open('questions.json', 'r') as file:
+    #     question = json.load(file)
+    await bot.send_poll(
+        chat_id=message.chat.id,
+        question="Сколько будет 2 + 2",
+        options=["3", "2", "1"],
+        correct_option_id=1,
+        is_anonymous=False,
+    )
+
+
+
+# @dp.callback_query(lambda c: c.answer.poll.type == "quiz") # listen for PollAnswer events for quiz polls
+# async def quiz_analysis(callback: types.CallbackQuery):
+#     option_id = callback.poll_answer.option_ids[0] # get the option ID chosen by the user
+#     poll_id = callback.poll_answer.poll_id # get the ID of the poll
+#     user_id = callback.from_user.id # get the ID of the user who chose the option
+
+#     # check if the user chose the correct option (in this case, 1 corresponds to "Option B")
+#     if option_id == 1:
+#         print(f"User with ID {user_id} chose the correct answer for poll with ID {poll_id}.")
+#     else:
+#         print(f"User with ID {user_id} chose the incorrect answer for poll with ID {poll_id}.")
+
 
 async def main() -> None:
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
