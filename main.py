@@ -4,9 +4,10 @@ import sys
 import asyncio
 from aiogram.enums import ParseMode
 from aiogram import Bot, Dispatcher, types
+from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from models import User
 from pony.orm import *
 from db import Users, Results
@@ -25,7 +26,7 @@ class ProfileStatesGroup(StatesGroup):
     check_data = State()
 
 
-@dp.message(commands=["start"])  # декоратор
+@dp.message(CommandStart())  # декоратор
 async def start(message: types.Message):
     await bot.send_message(
         message.chat.id,
@@ -39,49 +40,43 @@ async def start(message: types.Message):
     )
 
 
-@dp.message(commands=["reg"])
-async def user_reg(message: types.Message):
+@dp.message(Command('reg'))
+async def user_reg(message: types.Message, state: FSMContext):
     sessions[message.chat.id] = User()
     await bot.send_message(
         message.chat.id, "<b>Введите ваше ФИО</b>", parse_mode="html"
     )
-    await ProfileStatesGroup.user_name.set()
+    await state.set_state(ProfileStatesGroup.user_name)
 
 
-@dp.message(state=ProfileStatesGroup.user_name)
+@dp.message(ProfileStatesGroup.user_name)
 async def load_user_name(message: types.Message, state: FSMContext):
-    # async with state.proxy() as data:
-    #     data['user_name'] = message.text
-
     user = sessions[message.chat.id]
     user.name = message.text.strip()
     await bot.send_message(
         message.chat.id, "Введите вашу группу <b>(только цифры)</b>", parse_mode="html"
     )
-    await ProfileStatesGroup.next()
+    await state.set_state(ProfileStatesGroup.user_group)
 
 
-@dp.message(state=ProfileStatesGroup.user_group)
+@dp.message(ProfileStatesGroup.user_group)
 async def load_user_group(message: types.Message, state: FSMContext):
-    # async with state.proxy() as data:
-    #     data['user_group'] = message.text
-
     user = sessions[message.chat.id]
     user.group = message.text.strip()
-    markup_inline = InlineKeyboardMarkup(row_width=2)
-    item_yes = InlineKeyboardButton(text="Да", callback_data="yes")
-    item_no = InlineKeyboardButton(text="Нет", callback_data="no")
-    markup_inline.add(item_yes, item_no)
+    builder = InlineKeyboardBuilder()
+    builder.button(text='Да', callback_data='yes')
+    builder.button(text='Нет', callback_data='no')
     await bot.send_message(
         message.chat.id,
         f"<b>Проверьте корректность данных:</b>\n\nВас зовут - {user.name}\nСостоите в группе - {user.group}",
-        reply_markup=markup_inline,
+        reply_markup=builder.as_markup(),
         parse_mode="html",
     )
-    await ProfileStatesGroup.next()
+    await state.set_state(ProfileStatesGroup.check_data)
+    
 
 
-@dp.callback_query_handler(state=ProfileStatesGroup.check_data)
+@dp.callback_query(ProfileStatesGroup.check_data)
 async def callback_analysis(callback: types.CallbackQuery, state: FSMContext):
     user = sessions[callback.message.chat.id]
     if callback.data == "yes":
@@ -101,13 +96,8 @@ async def callback_analysis(callback: types.CallbackQuery, state: FSMContext):
             callback.message.chat.id,
             "Отлично теперь вы можете начать тест\nЭто тест на знания в сфере IT из 30ти вопросов\nЧтобы начать тест введите /startquiz",
         )
-        await state.finish()
+        
     elif callback.data == "no":
-        # await bot.send_message(callback.message.chat.id, "Введите верные данные")
-        # await bot.send_message(
-        #     callback.message.chat.id,
-        #     "Для прохождения регистрации введите /reg повторно!",
-        # )
         await bot.send_message(
             callback.message.chat.id, "<b>Введите ваше ФИО</b>", parse_mode="html"
         )
@@ -115,7 +105,7 @@ async def callback_analysis(callback: types.CallbackQuery, state: FSMContext):
         
     await callback.message.delete()
 
-@dp.message(commands=["startquiz"])
+@dp.message(Command('startquiz'))
 async def start_quiz(message: types.Message):
     pass
 
