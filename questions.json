@@ -1,0 +1,17 @@
+[
+  {
+    "question": "Сколько будет 1 + 1?",
+    "answers": ["1", "2", "3"],
+    "correct_answer_id": "1"
+  },
+  {
+    "question": "Сколько будет 2 + 2?",
+    "answers": ["4", "2", "3"],
+    "correct_answer_id": "0"
+  },
+  {
+    "question": "Сколько будет 5 + 5?",
+    "answers": ["1", "2", "10"],
+    "correct_answer_id": "2"
+  }
+]

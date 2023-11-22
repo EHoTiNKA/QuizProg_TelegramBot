@@ -108,30 +108,19 @@ async def callback_analysis(callback: types.CallbackQuery, state: FSMContext):
 
 
 @dp.message(Command("startquiz"))
-async def start_quiz(message: types.Message, state: FSMContext):
-    # with open('questions.json', 'r') as file:
-    #     question = json.load(file)
+async def start_quiz(message: types.Message):
+    with open('questions.json', 'r') as file:
+        questions = json.load(file)
+
     await bot.send_poll(
         chat_id=message.chat.id,
         question="Сколько будет 2 + 2",
-        options=["3", "2", "1"],
+        options=["3", "4", "1"],
         correct_option_id=1,
         is_anonymous=False,
     )
 
 
-
-# @dp.callback_query(lambda c: c.answer.poll.type == "quiz") # listen for PollAnswer events for quiz polls
-# async def quiz_analysis(callback: types.CallbackQuery):
-#     option_id = callback.poll_answer.option_ids[0] # get the option ID chosen by the user
-#     poll_id = callback.poll_answer.poll_id # get the ID of the poll
-#     user_id = callback.from_user.id # get the ID of the user who chose the option
-
-#     # check if the user chose the correct option (in this case, 1 corresponds to "Option B")
-#     if option_id == 1:
-#         print(f"User with ID {user_id} chose the correct answer for poll with ID {poll_id}.")
-#     else:
-#         print(f"User with ID {user_id} chose the incorrect answer for poll with ID {poll_id}.")
 
 
 async def main() -> None:
