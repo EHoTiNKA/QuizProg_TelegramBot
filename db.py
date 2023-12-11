@@ -13,7 +13,7 @@ class Users(db.Entity):
 
 class Results(db.Entity):
     user = Required(Users)
-    test_id = Required(int)
+    # test_id = Required(int)
     user_balls = Required(int)
 
 db.generate_mapping(create_tables=True)
