@@ -2,7 +2,7 @@
 
 This is a telegram bot with a quiz for a user with a database of tests and a user base
 Created using:
-- aiogram[2.23.1]
+- aiogram
 - pony
 - pydantic
 
