@@ -1,17 +1,14 @@
-import json
 import logging
 import sys
 import asyncio
-from aiogram.enums import ParseMode
-from aiogram.methods import send_poll
-from aiogram.types.poll_answer import PollAnswer
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import CommandStart, Command
 
+from aiogram import Dispatcher, types
+from aiogram.filters import CommandStart
+
+from bot import bot
 import registration, quiz
 
-API_TOKEN = "6753451845:AAHub4711K0-sbMDfC-FdvygpRlNdZLhBFk"
-bot = Bot(API_TOKEN, parse_mode=ParseMode.HTML)
+
 dp = Dispatcher()
 dp.include_router(registration.router)
 dp.include_router(quiz.router)
