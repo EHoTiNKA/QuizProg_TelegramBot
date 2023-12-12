@@ -5,7 +5,7 @@ db = Database()
 db.bind(provider='sqlite', filename='quizbot.db', create_db=True)
 
 class Users(db.Entity):
-    id = PrimaryKey(int, auto=True)
+    id = PrimaryKey(int)
     name = Required(str)
     group = Required(str)
     results = Set('Results')

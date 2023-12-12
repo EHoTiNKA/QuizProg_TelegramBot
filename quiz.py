@@ -5,9 +5,9 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram import types, Router
 from aiogram.filters import Command
-from pony.orm import *
+from pony import orm
 
-from db import Results
+from db import Results, Users
 from models import Question
 from bot import bot
 
@@ -80,10 +80,9 @@ async def poll_answer(poll_answer: PollAnswer, state: FSMContext):
         # No more questions, end the quiz
         await state.clear()
         await bot.send_message(poll_answer.user.id, f"Поздравляю тест пройден!\n\n<b>Ваши баллы - {correct_answer}</b>\nДо свидания", parse_mode="html")
-        
-    @db_session
-    def add_user_balls():
-        Results(user_balls=f"{correct_answer}")
 
-    add_user_balls()
-    commit()
+        with orm.db_session:
+            user = Users[poll_answer.user.id]
+            Results(user=user, user_balls=correct_answer)
+            orm.commit()   
+    

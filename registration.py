@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from pony.orm import *
+from pony import orm
 
 from db import Users
 from models import User
@@ -20,7 +20,7 @@ class ProfileStatesGroup(StatesGroup):
 
 @router.message(Command("reg"))
 async def user_reg(message: types.Message, state: FSMContext):
-    sessions[message.chat.id] = User()
+    sessions[message.chat.id] = User(id=message.chat.id)
     await message.answer(
         "<b>Введите ваше ФИО</b>", parse_mode="html"
     )
@@ -58,12 +58,10 @@ async def callback_analysis(callback: types.CallbackQuery, state: FSMContext):
     user = sessions[callback.message.chat.id]
     if callback.data == "yes":
 
-        @db_session
-        def add_user():
-            Users(name=f"{user.name}", group=f"{user.group}")
+        with orm.db_session:
+            Users(**user.dict())
+            orm.commit()
 
-        add_user()
-        commit()
         await callback.message.answer(
             
             "<b>Данные успешно сохранены!</b>",
