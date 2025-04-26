@@ -34,10 +34,3 @@ pip install -r requirements.txt
 python main.py
 ```
 
-
-
-## Contributing
-
-If you want to contribute to the BrokolBackend, you can:
-
-- Suggest a better implementation of the many to many appeal.
